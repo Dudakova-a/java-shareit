@@ -17,20 +17,11 @@ import java.util.NoSuchElementException;
 @RestControllerAdvice
 public class ErrorHandler {
     /**
-     * Обрабатывает NotFoundException и возвращает HTTP 404.
+     * Обрабатывает AccessDeniedException и возвращает HTTP 403.
      */
     @ExceptionHandler
-    @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ErrorResponse handleNotFoundException(final NotFoundException e) {
-        return new ErrorResponse(e.getMessage());
-    }
-
-    /**
-     * Обрабатывает ValidationException и возвращает HTTP 400.
-     */
-    @ExceptionHandler
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ErrorResponse handleValidationException(final ValidationException e) {
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public ErrorResponse handleAccessDeniedException(final AccessDeniedException e) {
         return new ErrorResponse(e.getMessage());
     }
 
@@ -44,11 +35,11 @@ public class ErrorHandler {
     }
 
     /**
-     * Обрабатывает AccessDeniedException и возвращает HTTP 403.
+     * Обрабатывает NotFoundException и возвращает HTTP 404.
      */
     @ExceptionHandler
-    @ResponseStatus(HttpStatus.FORBIDDEN)
-    public ErrorResponse handleAccessDeniedException(final AccessDeniedException e) {
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ErrorResponse handleNotFoundException(final NotFoundException e) {
         return new ErrorResponse(e.getMessage());
     }
 
@@ -58,6 +49,15 @@ public class ErrorHandler {
     @ExceptionHandler
     @ResponseStatus(HttpStatus.FORBIDDEN)
     public ErrorResponse handleSecurityException(final SecurityException e) {
+        return new ErrorResponse(e.getMessage());
+    }
+
+    /**
+     * Обрабатывает ValidationException и возвращает HTTP 400.
+     */
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleValidationException(final ValidationException e) {
         return new ErrorResponse(e.getMessage());
     }
 
@@ -78,7 +78,7 @@ public class ErrorHandler {
     @AllArgsConstructor
     public static class ErrorResponse {
         /**
-         * Сообщение об ошибке для клиента
+         * Сообщение об ошибке для клиента.
          */
         private String error;
     }
