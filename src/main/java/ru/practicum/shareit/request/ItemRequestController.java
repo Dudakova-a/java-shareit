@@ -1,5 +1,6 @@
 package ru.practicum.shareit.request;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
@@ -7,7 +8,7 @@ import ru.practicum.shareit.request.dto.ItemRequestDto;
 import java.util.List;
 
 /**
- * TODO Sprint add-item-requests.
+ * REST контроллер для работы с запросами вещей.
  */
 @RestController
 @RequestMapping(path = "/requests")
@@ -23,25 +24,25 @@ public class ItemRequestController {
      * Создает новый запрос на вещь.
      *
      * @param itemRequestDto данные запроса из тела запроса.
-     * @param requestorId    идентификатор пользователя из заголовка X-Sharer-User-Id.
+     * @param userId         идентификатор пользователя из заголовка X-Sharer-User-Id.
      * @return созданный запрос.
      */
     @PostMapping
-    public ItemRequestDto create(@RequestBody ItemRequestDto itemRequestDto,
-                                 @RequestHeader(USER_ID_HEADER) Long requestorId) {
-        return itemRequestService.create(itemRequestDto, requestorId);
+    public ItemRequestDto create(@Valid @RequestBody ItemRequestDto itemRequestDto,
+                                 @RequestHeader(USER_ID_HEADER) Long userId) {
+        return itemRequestService.create(itemRequestDto, userId);
     }
 
     /**
      * Возвращает все запросы текущего пользователя.
      * Запросы возвращаются в порядке от новых к старым.
      *
-     * @param requestorId идентификатор пользователя из заголовка.
+     * @param userId идентификатор пользователя из заголовка.
      * @return список запросов пользователя.
      */
     @GetMapping
-    public List<ItemRequestDto> getByRequestorId(@RequestHeader(USER_ID_HEADER) Long requestorId) {
-        return itemRequestService.getByRequestorId(requestorId);
+    public List<ItemRequestDto> getByRequestorId(@RequestHeader(USER_ID_HEADER) Long userId) {
+        return itemRequestService.getByUserId(userId);
     }
 
     /**
@@ -52,8 +53,11 @@ public class ItemRequestController {
      * @return список запросов других пользователей.
      */
     @GetMapping("/all")
-    public List<ItemRequestDto> getAllExceptRequestor(@RequestHeader(USER_ID_HEADER) Long userId) {
-        return itemRequestService.getAllExceptRequestor(userId);
+    public List<ItemRequestDto> getAllExceptUser(
+            @RequestHeader(USER_ID_HEADER) Long userId,
+            @RequestParam(defaultValue = "0") int from,
+            @RequestParam(defaultValue = "10") int size) {
+        return itemRequestService.getAllExceptUser(userId, from, size);
     }
 
     /**
@@ -75,7 +79,7 @@ public class ItemRequestController {
      * @return обновленный запрос
      */
     @PatchMapping("/{requestId}")
-    public ItemRequestDto update(@PathVariable Long requestId,
+    public ItemRequestDto update(@Valid @PathVariable Long requestId,
                                  @RequestBody ItemRequestDto itemRequestDto) {
         return itemRequestService.update(requestId, itemRequestDto);
     }

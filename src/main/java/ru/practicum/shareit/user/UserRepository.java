@@ -1,58 +1,19 @@
 package ru.practicum.shareit.user;
 
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import java.util.*;
+import java.util.List;
+import java.util.Optional;
 
 @Repository
-public class UserRepository {
-    private final Map<Long, User> users = new HashMap<>();
-    private Long nextId = 1L;
+public interface UserRepository extends JpaRepository<User, Long> {
 
-    public User save(User user) {
-        if (user.getId() == null) {
-            user.setId(nextId++);
-        }
-        users.put(user.getId(), user);
-        return user;
-    }
+    boolean existsByEmail(String email);
 
-    public Optional<User> findById(Long id) {
-        return Optional.ofNullable(users.get(id));
-    }
+    Optional<User> findByEmail(String email);
 
-    public List<User> findAll() {
-        return new ArrayList<>(users.values());
-    }
+    boolean existsById(Long id);
 
-    public User update(User user) {
-        users.put(user.getId(), user);
-        return user;
-    }
-
-    public void deleteById(Long id) {
-        users.remove(id);
-    }
-
-    public boolean existsById(Long id) {
-        return users.containsKey(id);
-    }
-
-    public boolean existsByEmail(String email) {
-        for (User user : users.values()) {
-            if (user.getEmail().equals(email)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public Optional<User> findByEmail(String email) {
-        for (User user : users.values()) {
-            if (user.getEmail().equals(email)) {
-                return Optional.of(user);
-            }
-        }
-        return Optional.empty();
-    }
+    List<User> findByName(String name);
 }

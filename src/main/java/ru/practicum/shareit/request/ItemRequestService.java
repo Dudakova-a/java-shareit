@@ -33,7 +33,7 @@ public interface ItemRequestService {
      * @param requestorId идентификатор пользователя.
      * @return список запросов пользователя в формате DTO.
      */
-    List<ItemRequestDto> getByRequestorId(Long requestorId);
+    List<ItemRequestDto> getByUserId(Long requestorId);
 
     /**
      * Возвращает все запросы других пользователей.
@@ -41,7 +41,7 @@ public interface ItemRequestService {
      * @param userId идентификатор пользователя (чтобы исключить его запросы).
      * @return список запросов других пользователей в формате DTO.
      */
-    List<ItemRequestDto> getAllExceptRequestor(Long userId);
+    List<ItemRequestDto> getAllExceptUser(Long userId, int from, int size);
 
     /**
      * Обновляет данные запроса.

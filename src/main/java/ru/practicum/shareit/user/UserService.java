@@ -1,21 +1,19 @@
 package ru.practicum.shareit.user;
 
-import ru.practicum.shareit.exception.ValidationException;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import ru.practicum.shareit.exception.ValidationException;
 import ru.practicum.shareit.user.dto.UserDto;
 
-import java.util.*;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class UserService {
     private final UserRepository userRepository;
 
-    public UserService(UserRepository userRepository) {
-        this.userRepository = userRepository;
-    }
-
     public UserDto createUser(UserDto userDto) {
-        // Проверяем, что email уникален
         if (userRepository.existsByEmail(userDto.getEmail())) {
             throw new ValidationException("Email already exists: " + userDto.getEmail());
         }
@@ -27,22 +25,19 @@ public class UserService {
 
     public UserDto getUserById(Long id) {
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("User not found with id: " + id));
+                .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
         return UserMapper.toUserDto(user);
     }
 
     public List<UserDto> getAllUsers() {
-        List<User> users = userRepository.findAll();
-        List<UserDto> result = new ArrayList<>();
-        for (User user : users) {
-            result.add(UserMapper.toUserDto(user));
-        }
-        return result;
+        return userRepository.findAll().stream()
+                .map(UserMapper::toUserDto)
+                .collect(Collectors.toList());
     }
 
     public UserDto updateUser(Long id, UserDto userDto) {
         User existingUser = userRepository.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("User not found with id: " + id));
+                .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
 
         if (userDto.getName() != null) {
             existingUser.setName(userDto.getName());
@@ -54,13 +49,13 @@ public class UserService {
             existingUser.setEmail(userDto.getEmail());
         }
 
-        User updatedUser = userRepository.update(existingUser);
+        User updatedUser = userRepository.save(existingUser);
         return UserMapper.toUserDto(updatedUser);
     }
 
     public void deleteUser(Long id) {
         if (!userRepository.existsById(id)) {
-            throw new NoSuchElementException("User not found with id: " + id);
+            throw new RuntimeException("User not found with id: " + id);
         }
         userRepository.deleteById(id);
     }
