@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * Реализация сервиса запросов вещей.
+ * Реализация сервиса запросов вещей
  */
 @Service
 @RequiredArgsConstructor
