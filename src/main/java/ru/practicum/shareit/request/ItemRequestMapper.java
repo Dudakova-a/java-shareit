@@ -1,32 +1,30 @@
 package ru.practicum.shareit.request;
 
-import ru.practicum.shareit.exception.NotFoundException;
+import org.springframework.stereotype.Component;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
-import ru.practicum.shareit.user.UserRepository;
+import ru.practicum.shareit.user.User;
 
 import java.time.LocalDateTime;
 
+@Component
 public class ItemRequestMapper {
 
-    public static ItemRequestDto toItemRequestDto(ItemRequest itemRequest) {
+    public ItemRequestDto toItemRequestDto(ItemRequest itemRequest) {
         return new ItemRequestDto(
                 itemRequest.getId(),
                 itemRequest.getDescription(),
-                itemRequest.getRequestorId(), // используем Long ID
+                itemRequest.getRequester().getId(),
                 itemRequest.getCreated()
         );
     }
 
-    public static ItemRequest toItemRequest(ItemRequestDto itemRequestDto, UserRepository userRepository) {
-        // Проверяем, что пользователь существует
-        userRepository.findById(itemRequestDto.getRequestorId())
-                .orElseThrow(() -> new NotFoundException("User not found with id: " + itemRequestDto.getRequestorId()));
-
-        return new ItemRequest(
-                itemRequestDto.getId(),
-                itemRequestDto.getDescription(),
-                itemRequestDto.getRequestorId(), // передаем Long ID
-                itemRequestDto.getCreated() != null ? itemRequestDto.getCreated() : LocalDateTime.now()
-        );
+    public ItemRequest toItemRequest(ItemRequestDto itemRequestDto, User requester) {
+        return ItemRequest.builder()
+                .id(itemRequestDto.getId())
+                .description(itemRequestDto.getDescription())
+                .requester(requester)
+                .created(itemRequestDto.getCreated() != null ?
+                        itemRequestDto.getCreated() : LocalDateTime.now())
+                .build();
     }
 }
