@@ -3,6 +3,7 @@ package ru.practicum.shareit.request;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+import ru.practicum.shareit.request.dto.ItemRequestCreateDto;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
 
 import java.util.List;
@@ -23,14 +24,14 @@ public class ItemRequestController {
     /**
      * Создает новый запрос на вещь.
      *
-     * @param itemRequestDto данные запроса из тела запроса.
+     * @param itemRequestCreateDto данные запроса из тела запроса.
      * @param userId         идентификатор пользователя из заголовка X-Sharer-User-Id.
      * @return созданный запрос.
      */
     @PostMapping
-    public ItemRequestDto create(@Valid @RequestBody ItemRequestDto itemRequestDto,
+    public ItemRequestDto create(@Valid @RequestBody ItemRequestCreateDto itemRequestCreateDto,
                                  @RequestHeader(USER_ID_HEADER) Long userId) {
-        return itemRequestService.create(itemRequestDto, userId);
+        return itemRequestService.create(itemRequestCreateDto, userId);
     }
 
     /**

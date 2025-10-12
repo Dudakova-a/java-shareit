@@ -1,6 +1,7 @@
 package ru.practicum.shareit.item;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.booking.BookingRepository;
 import ru.practicum.shareit.booking.dto.BookingStatus;
@@ -12,6 +13,7 @@ import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.BookingInfoDto;
 import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.UserRepository;
+import ru.practicum.shareit.request.ItemRequestRepository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
@@ -21,6 +23,7 @@ import java.util.stream.Collectors;
 /**
  * Реализация сервиса вещей.
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ItemServiceImpl implements ItemService {
@@ -30,6 +33,7 @@ public class ItemServiceImpl implements ItemService {
     private final CommentRepository commentRepository;
     private final ItemMapper itemMapper;
     private final CommentMapper commentMapper;
+    private final ItemRequestRepository itemRequestRepository;
 
 
     /**
@@ -38,13 +42,42 @@ public class ItemServiceImpl implements ItemService {
     @Override
     @Transactional
     public ItemDto create(ItemDto itemDto, Long ownerId) {
-        User owner = userRepository.findById(ownerId)
-                .orElseThrow(() -> new NotFoundException("User not found with id: " + ownerId));
+        log.info("=== ITEM CREATE START ===");
+        log.info("ItemDto: {}", itemDto);
+        log.info("OwnerId: {}", ownerId);
 
-        Item item = itemMapper.toItem(itemDto, owner);
+        try {
+            User owner = userRepository.findById(ownerId)
+                    .orElseThrow(() -> {
+                        log.error("User not found with id: {}", ownerId);
+                        return new NotFoundException("User not found with id: " + ownerId);
+                    });
+            log.info("User found: {}", owner);
 
+            Item item = itemMapper.toItem(itemDto, owner);
+            log.info("Mapped item: {}", item);
 
-        return itemMapper.toItemDto(itemRepository.save(item));
+            if (itemDto.getRequestId() != null) {
+                ru.practicum.shareit.request.ItemRequest request = itemRequestRepository.findById(itemDto.getRequestId())
+                        .orElseThrow(() -> {
+                            log.error("ItemRequest not found with id: {}", itemDto.getRequestId());
+                            return new NotFoundException("ItemRequest not found with id: " + itemDto.getRequestId());
+                        });
+                item.setRequest(request);
+            }
+
+            Item savedItem = itemRepository.save(item);
+            log.info("Saved item: {}", savedItem);
+
+            ItemDto result = itemMapper.toItemDto(savedItem);
+            log.info("Result DTO: {}", result);
+            log.info("=== ITEM CREATE SUCCESS ===");
+
+            return result;
+        } catch (Exception e) {
+            log.error("=== ITEM CREATE ERROR ===", e);
+            throw e;
+        }
     }
 
     /**

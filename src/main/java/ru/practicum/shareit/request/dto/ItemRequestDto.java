@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -29,7 +30,6 @@ public class ItemRequestDto {
      * Пользователь, создавший запрос.
      */
     @NotNull(message = "ItemRequest requestor не должен быть null")
-    @NotBlank(message = "ItemRequest requestor не должен быть пустым")
     private Long requestorId;
 
     /**
@@ -40,4 +40,25 @@ public class ItemRequestDto {
     @PastOrPresent(message = "Дата начала ItemRequest должна быть в прошлом или настоящем")
     private LocalDateTime created;
 
+    private List<ItemResponseDto> items;
+
+    public ItemRequestDto(Long id, String description, Long requestorId, LocalDateTime created) {
+        this.id = id;
+        this.description = description;
+        this.requestorId = requestorId;
+        this.created = created;
+        this.items = List.of();
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ItemResponseDto {
+        private Long id;
+        private String name;
+        private String description;
+        private Boolean available;
+        private Long requestId;
+        private Long ownerId;
+    }
 }

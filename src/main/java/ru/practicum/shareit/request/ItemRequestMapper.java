@@ -1,6 +1,7 @@
 package ru.practicum.shareit.request;
 
 import org.springframework.stereotype.Component;
+import ru.practicum.shareit.request.dto.ItemRequestCreateDto;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
 import ru.practicum.shareit.user.User;
 
@@ -18,13 +19,11 @@ public class ItemRequestMapper {
         );
     }
 
-    public ItemRequest toItemRequest(ItemRequestDto itemRequestDto, User requester) {
+    public ItemRequest toItemRequest(ItemRequestCreateDto itemRequestCreateDto, User requester) {
         return ItemRequest.builder()
-                .id(itemRequestDto.getId())
-                .description(itemRequestDto.getDescription())
+                .description(itemRequestCreateDto.getDescription())
                 .requester(requester)
-                .created(itemRequestDto.getCreated() != null ?
-                        itemRequestDto.getCreated() : LocalDateTime.now())
+                .created(LocalDateTime.now())
                 .build();
     }
 }

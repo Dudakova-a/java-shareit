@@ -3,6 +3,7 @@ package ru.practicum.shareit.booking;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
+import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.dto.BookingWithUserDto;
 import ru.practicum.shareit.booking.dto.BookingCreateDto;
 
@@ -16,28 +17,29 @@ public class BookingController {
     private final BookingService bookingService;
 
     @PostMapping
-    public BookingWithUserDto create(@RequestBody BookingCreateDto bookingCreateDto,
-                                     @RequestHeader("X-Sharer-User-Id") Long bookerId) {
+    public BookingDto create(@RequestBody BookingCreateDto bookingCreateDto,
+                             @RequestHeader("X-Sharer-User-Id") Long bookerId) {
         log.info("POST /bookings - Creating booking: {}, bookerId: {}", bookingCreateDto, bookerId);
-        BookingWithUserDto result = bookingService.create(bookingCreateDto, bookerId);  // ← ИЗМЕНИ ТИП
+        BookingDto result = bookingService.create(bookingCreateDto, bookerId);
         log.info("POST /bookings - Booking created successfully: {}", result);
         return result;
     }
 
     @GetMapping("/{id}")
-    public BookingWithUserDto getById(@PathVariable Long id) {  // ← ИЗМЕНИ ТИП
-        log.info("GET /bookings/{} - Getting booking by id", id);
-        BookingWithUserDto result = bookingService.getById(id);  // ← ИЗМЕНИ ТИП
+    public BookingDto getById(@PathVariable Long id,
+                              @RequestHeader("X-Sharer-User-Id") Long userId) {
+        log.info("GET /bookings/{} - Getting booking by id, userId: {}", id, userId);
+        BookingDto result = bookingService.getById(id, userId);
         log.info("GET /bookings/{} - Booking found: {}", id, result);
         return result;
     }
 
     @PatchMapping("/{id}")
-    public BookingWithUserDto updateStatus(@PathVariable Long id,  // ← ИЗМЕНИ ТИП
-                                           @RequestParam Boolean approved,
-                                           @RequestHeader("X-Sharer-User-Id") Long ownerId) {
-        log.info("PATCH /bookings/{} - Updating status: approved={}, ownerId: {}", id, approved, ownerId);
-        BookingWithUserDto result = bookingService.updateStatus(id, approved, ownerId);  // ← ИЗМЕНИ ТИП
+    public BookingDto updateStatus(@PathVariable Long id,
+                                   @RequestParam Boolean approved,
+                                   @RequestHeader("X-Sharer-User-Id") Long userId) {
+        log.info("PATCH /bookings/{} - Updating status: approved={}, userId: {}", id, approved, userId);
+        BookingDto result = bookingService.updateStatus(id, approved, userId);
         log.info("PATCH /bookings/{} - Status updated successfully: {}", id, result);
         return result;
     }

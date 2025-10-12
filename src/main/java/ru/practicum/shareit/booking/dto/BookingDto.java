@@ -44,4 +44,43 @@ public class BookingDto {
      * Статус бронирования.
      */
     private String status;
+
+    // ДОБАВИТЬ эти поля для прохождения тестов
+    /**
+     * Информация о бронирующем пользователе.
+     */
+    private Booker booker;
+
+    /**
+     * Информация о бронируемой вещи.
+     */
+    private Item item;
+
+    /**
+     * Вложенный класс для информации о пользователе.
+     */
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class Booker {
+        private Long id;
+        private String name;
+        private String email;
+    }
+
+    /**
+     * Вложенный класс для информации о вещи.
+     */
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class Item {
+        private Long id;
+        private String name;
+        private String description;
+        private Boolean available;
+        private Long requestId;
+    }
 }

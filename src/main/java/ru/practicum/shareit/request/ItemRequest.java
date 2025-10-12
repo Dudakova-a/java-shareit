@@ -30,7 +30,7 @@ public class ItemRequest {
     /**
      * Пользователь, создавший запрос.
      */
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "requester_id", nullable = false)
     private User requester;
 
