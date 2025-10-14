@@ -25,7 +25,7 @@ public class ItemRequestController {
      * Создает новый запрос на вещь.
      *
      * @param itemRequestCreateDto данные запроса из тела запроса.
-     * @param userId         идентификатор пользователя из заголовка X-Sharer-User-Id.
+     * @param userId               идентификатор пользователя из заголовка X-Sharer-User-Id.
      * @return созданный запрос.
      */
     @PostMapping
