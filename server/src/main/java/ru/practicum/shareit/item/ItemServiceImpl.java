@@ -44,6 +44,7 @@ public class ItemServiceImpl implements ItemService {
     public ItemDto create(ItemDto itemDto, Long ownerId) {
         log.info("=== ITEM CREATE START ===");
         log.info("ItemDto: {}", itemDto);
+        log.info("ItemDto.available: {}", itemDto.getAvailable());
         log.info("OwnerId: {}", ownerId);
 
         try {
@@ -55,7 +56,7 @@ public class ItemServiceImpl implements ItemService {
             log.info("User found: {}", owner);
 
             Item item = itemMapper.toItem(itemDto, owner);
-            log.info("Mapped item: {}", item);
+            log.info("Mapped item available: {}", item.getAvailable());
 
             if (itemDto.getRequestId() != null) {
                 ru.practicum.shareit.request.ItemRequest request = itemRequestRepository.findById(itemDto.getRequestId())
@@ -67,10 +68,10 @@ public class ItemServiceImpl implements ItemService {
             }
 
             Item savedItem = itemRepository.save(item);
-            log.info("Saved item: {}", savedItem);
+            log.info("Saved item available: {}", savedItem.getAvailable());
 
             ItemDto result = itemMapper.toItemDto(savedItem);
-            log.info("Result DTO: {}", result);
+            log.info("Result DTO available: {}", result.getAvailable());
             log.info("=== ITEM CREATE SUCCESS ===");
 
             return result;

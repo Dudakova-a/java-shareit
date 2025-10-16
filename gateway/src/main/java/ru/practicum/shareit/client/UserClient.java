@@ -23,6 +23,11 @@ public class UserClient extends BaseClient {
         );
     }
 
+    public ResponseEntity<Object> existsByEmail(String email) {
+        Map<String, Object> parameters = Map.of("email", email);
+        return get("/check-email?email={email}", null, parameters);
+    }
+
     public ResponseEntity<Object> createUser(UserDto userDto) {
         return post("", userDto);  // Используем метод без userId
     }

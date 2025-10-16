@@ -1,6 +1,7 @@
 package ru.practicum.shareit.booking;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.dto.BookingDto;
@@ -19,6 +20,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -29,38 +31,53 @@ public class BookingService {
 
     @Transactional
     public BookingDto create(BookingCreateDto bookingCreateDto, Long bookerId) {
-        // Проверка существования пользователя
-        User booker = userRepository.findById(bookerId)
-                .orElseThrow(() -> new NotFoundException("User not found with id: " + bookerId));
+        log.info("=== BOOKING CREATE START ===");
+        log.info("BookingCreateDto: {}", bookingCreateDto);
+        log.info("BookerId: {}", bookerId);
 
-        // Проверка существования предмета
-        Item item = itemRepository.findById(bookingCreateDto.getItemId())
-                .orElseThrow(() -> new NotFoundException("Item not found with id: " + bookingCreateDto.getItemId()));
+        try {
+            User booker = userRepository.findById(bookerId)
+                    .orElseThrow(() -> new NotFoundException("User not found with id: " + bookerId));
 
-        // Проверка доступности вещи
-        if (!item.getAvailable()) {
-            throw new ValidationException("Item is not available for booking");
+            Item item = itemRepository.findById(bookingCreateDto.getItemId())
+                    .orElseThrow(() -> new NotFoundException("Item not found with id: " + bookingCreateDto.getItemId()));
+
+            log.info("ITEM AVAILABILITY CHECK - Item ID: {}, Available: {}", item.getId(), item.getAvailable());
+            log.info("Full item details: {}", item);
+
+            // Проверка доступности вещи
+            if (!item.getAvailable()) {
+                log.error("ITEM NOT AVAILABLE - Throwing ValidationException for item {}", item.getId());  // ← ДОБАВЬТЕ
+                throw new ValidationException("Item is not available for booking");
+            }
+
+            // Проверка что пользователь не бронирует свою вещь
+            if (item.getOwner().getId().equals(bookerId)) {
+                throw new AccessDeniedException("Owner cannot book own item");
+            }
+
+            // Валидация дат
+            validateBookingDates(bookingCreateDto.getStart(), bookingCreateDto.getEnd());
+
+            // Проверка на пересекающиеся бронирования
+            if (hasOverlappingBookings(bookingCreateDto.getItemId(), bookingCreateDto.getStart(), bookingCreateDto.getEnd())) {
+                throw new ValidationException("Item is already booked for this period");
+            }
+
+            // Создание бронирования
+            Booking booking = BookingMapper.toBooking(bookingCreateDto, booker, item);
+            booking.setStatus(BookingStatus.WAITING);
+
+            Booking savedBooking = bookingRepository.save(booking);
+            BookingDto result = BookingMapper.toBookingDto(savedBooking);
+
+            log.info("=== BOOKING CREATE SUCCESS ===");  // ← ДОБАВЬТЕ
+            return result;
+
+        } catch (Exception e) {  // ← ДОБАВЬТЕ CATCH
+            log.error("=== BOOKING CREATE ERROR ===", e);  // ← ДОБАВЬТЕ
+            throw e;
         }
-
-        // Проверка что пользователь не бронирует свою вещь
-        if (item.getOwner().getId().equals(bookerId)) {
-            throw new AccessDeniedException("Owner cannot book own item");
-        }
-
-        // Валидация дат
-        validateBookingDates(bookingCreateDto.getStart(), bookingCreateDto.getEnd());
-
-        // Проверка на пересекающиеся бронирования
-        if (hasOverlappingBookings(bookingCreateDto.getItemId(), bookingCreateDto.getStart(), bookingCreateDto.getEnd())) {
-            throw new ValidationException("Item is already booked for this period");
-        }
-
-        // Создание бронирования
-        Booking booking = BookingMapper.toBooking(bookingCreateDto, booker, item);
-        booking.setStatus(BookingStatus.WAITING);
-
-        Booking savedBooking = bookingRepository.save(booking);
-        return BookingMapper.toBookingDto(savedBooking);
     }
 
     public BookingDto getById(Long bookingId, Long userId) {

@@ -1,6 +1,5 @@
 package ru.practicum.shareit.request;
 
-import jakarta.validation.Valid;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -35,7 +34,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
      */
     @Override
     @Transactional
-    public ItemRequestDto create(@Valid ItemRequestCreateDto itemRequestDto, Long userId) {
+    public ItemRequestDto create(ItemRequestCreateDto itemRequestDto, Long userId) {
         User requester = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("User not found with id: " + userId));
 

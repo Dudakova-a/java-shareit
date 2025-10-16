@@ -1,4 +1,4 @@
-package ru.practicum.shareit;
+package ru.practicum.shareit.item;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
@@ -10,7 +10,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.web.servlet.MockMvc;
 import ru.practicum.shareit.client.ItemClient;
-import ru.practicum.shareit.item.ItemController;
 import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 
@@ -61,15 +60,15 @@ class ItemControllerTest {
         // Given
         ItemDto itemDto = createTestItemDto();
         itemDto.setId(null); // Для создания ID должен быть null
-        
+
         String responseBody = """
-            {
-                "id": 1,
-                "name": "Test Item",
-                "description": "Test Description",
-                "available": true
-            }
-            """;
+                {
+                    "id": 1,
+                    "name": "Test Item",
+                    "description": "Test Description",
+                    "available": true
+                }
+                """;
 
         when(itemClient.create(any(ItemDto.class), anyLong()))
                 .thenReturn(ResponseEntity.ok(responseBody));
@@ -117,13 +116,13 @@ class ItemControllerTest {
     void getById_shouldReturnItem() throws Exception {
         // Given
         String responseBody = """
-            {
-                "id": 1,
-                "name": "Test Item",
-                "description": "Test Description",
-                "available": true
-            }
-            """;
+                {
+                    "id": 1,
+                    "name": "Test Item",
+                    "description": "Test Description",
+                    "available": true
+                }
+                """;
 
         when(itemClient.getById(anyLong(), anyLong()))
                 .thenReturn(ResponseEntity.ok(responseBody));
@@ -153,19 +152,19 @@ class ItemControllerTest {
     void getByOwnerId_shouldReturnItemsList() throws Exception {
         // Given
         String responseBody = """
-            [
-                {
-                    "id": 1,
-                    "name": "Item 1",
-                    "available": true
-                },
-                {
-                    "id": 2,
-                    "name": "Item 2",
-                    "available": true
-                }
-            ]
-            """;
+                [
+                    {
+                        "id": 1,
+                        "name": "Item 1",
+                        "available": true
+                    },
+                    {
+                        "id": 2,
+                        "name": "Item 2",
+                        "available": true
+                    }
+                ]
+                """;
 
         when(itemClient.getByOwnerId(anyLong(), anyInt(), anyInt()))
                 .thenReturn(ResponseEntity.ok(responseBody));
@@ -201,13 +200,13 @@ class ItemControllerTest {
         updateDto.setName("Updated Name");
 
         String responseBody = """
-            {
-                "id": 1,
-                "name": "Updated Name",
-                "description": "Original Description",
-                "available": true
-            }
-            """;
+                {
+                    "id": 1,
+                    "name": "Updated Name",
+                    "description": "Original Description",
+                    "available": true
+                }
+                """;
 
         when(itemClient.update(anyLong(), any(ItemDto.class), anyLong()))
                 .thenReturn(ResponseEntity.ok(responseBody));
@@ -257,15 +256,15 @@ class ItemControllerTest {
     void search_shouldReturnFoundItems() throws Exception {
         // Given
         String responseBody = """
-            [
-                {
-                    "id": 1,
-                    "name": "Drill",
-                    "description": "Powerful drill",
-                    "available": true
-                }
-            ]
-            """;
+                [
+                    {
+                        "id": 1,
+                        "name": "Drill",
+                        "description": "Powerful drill",
+                        "available": true
+                    }
+                ]
+                """;
 
         when(itemClient.search(anyString(), anyInt(), anyInt()))
                 .thenReturn(ResponseEntity.ok(responseBody));
@@ -303,13 +302,13 @@ class ItemControllerTest {
         commentDto.setId(null);
 
         String responseBody = """
-            {
-                "id": 1,
-                "text": "Test comment",
-                "authorName": "Test User",
-                "created": "2024-01-01T10:00:00"
-            }
-            """;
+                {
+                    "id": 1,
+                    "text": "Test comment",
+                    "authorName": "Test User",
+                    "created": "2024-01-01T10:00:00"
+                }
+                """;
 
         when(itemClient.addComment(anyLong(), any(CommentDto.class), anyLong()))
                 .thenReturn(ResponseEntity.ok(responseBody));

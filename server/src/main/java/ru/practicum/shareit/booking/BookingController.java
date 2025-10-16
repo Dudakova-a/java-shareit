@@ -19,9 +19,10 @@ public class BookingController {
     @PostMapping
     public BookingDto create(@RequestBody BookingCreateDto bookingCreateDto,
                              @RequestHeader("X-Sharer-User-Id") Long bookerId) {
-        log.info("POST /bookings - Creating booking: {}, bookerId: {}", bookingCreateDto, bookerId);
+        log.info("POST /bookings - Creating booking for item: {}, bookerId: {}",
+                bookingCreateDto.getItemId(), bookerId);
         BookingDto result = bookingService.create(bookingCreateDto, bookerId);
-        log.info("POST /bookings - Booking created successfully: {}", result);
+        log.info("POST /bookings - Booking created successfully with id: {}", result.getId());
         return result;
     }
 
@@ -30,7 +31,7 @@ public class BookingController {
                               @RequestHeader("X-Sharer-User-Id") Long userId) {
         log.info("GET /bookings/{} - Getting booking by id, userId: {}", id, userId);
         BookingDto result = bookingService.getById(id, userId);
-        log.info("GET /bookings/{} - Booking found: {}", id, result);
+        log.info("GET /bookings/{} - Booking found for user: {}", id, userId);
         return result;
     }
 
@@ -38,9 +39,9 @@ public class BookingController {
     public BookingDto updateStatus(@PathVariable Long id,
                                    @RequestParam Boolean approved,
                                    @RequestHeader("X-Sharer-User-Id") Long userId) {
-        log.info("PATCH /bookings/{} - Updating status: approved={}, userId: {}", id, approved, userId);
+        log.info("PATCH /bookings/{} - Updating status to: {}, userId: {}", id, approved, userId);
         BookingDto result = bookingService.updateStatus(id, approved, userId);
-        log.info("PATCH /bookings/{} - Status updated successfully: {}", id, result);
+        log.info("PATCH /bookings/{} - Status updated successfully by user: {}", id, userId);
         return result;
     }
 
@@ -49,7 +50,8 @@ public class BookingController {
                                                   @RequestParam(defaultValue = "ALL") String state) {
         log.info("GET /bookings - Getting bookings for bookerId: {}, state: {}", bookerId, state);
         List<BookingWithUserDto> result = bookingService.getByBookerId(bookerId, state);
-        log.info("GET /bookings - Found {} bookings for bookerId: {}", result.size(), bookerId);
+        log.info("GET /bookings - Found {} bookings for bookerId: {} with state: {}",
+                result.size(), bookerId, state);
         return result;
     }
 
@@ -58,7 +60,8 @@ public class BookingController {
                                                  @RequestParam(defaultValue = "ALL") String state) {
         log.info("GET /bookings/owner - Getting bookings for ownerId: {}, state: {}", ownerId, state);
         List<BookingWithUserDto> result = bookingService.getByOwnerId(ownerId, state);
-        log.info("GET /bookings/owner - Found {} bookings for ownerId: {}", result.size(), ownerId);
+        log.info("GET /bookings/owner - Found {} bookings for ownerId: {} with state: {}",
+                result.size(), ownerId, state);
         return result;
     }
 

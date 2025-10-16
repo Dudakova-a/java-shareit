@@ -2,6 +2,7 @@ package ru.practicum.shareit.user;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -12,7 +13,8 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
 
-import java.util.List;
+import java.util.Map;
+
 
 @Slf4j
 @RestController
@@ -24,6 +26,20 @@ public class UserController {
 
     @PostMapping
     public ResponseEntity<Object> createUser(@Valid @RequestBody UserDto userDto) {
+        // Проверяем существование email
+        ResponseEntity<Object> emailCheckResponse = userClient.existsByEmail(userDto.getEmail());
+
+        // Если запрос успешен и email существует, возвращаем ошибку в формате JSON
+        if (emailCheckResponse.getStatusCode().is2xxSuccessful() &&
+                emailCheckResponse.getBody() instanceof Boolean &&
+                (Boolean) emailCheckResponse.getBody()) {
+            log.warn("Email already exists: {}", userDto.getEmail());
+
+            // Возвращаем JSON вместо простого текста
+            Map<String, String> errorResponse = Map.of("error", "Email already exists");
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
+        }
+
         log.info("POST /users - Creating user: {}", userDto);
         ResponseEntity<Object> response = userClient.createUser(userDto);
         log.info("POST /users - User creation completed with status: {}", response.getStatusCode());

@@ -1,6 +1,5 @@
 package ru.practicum.shareit.request;
 
-import jakarta.validation.Valid;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.request.dto.ItemRequestCreateDto;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
@@ -18,7 +17,7 @@ public interface ItemRequestService {
      * @param requestorId    идентификатор пользователя, создающего запрос.
      * @return созданный запрос в формате DTO.
      */
-    ItemRequestDto create(@Valid ItemRequestCreateDto itemRequestDto, Long requestorId);
+    ItemRequestDto create(ItemRequestCreateDto itemRequestDto, Long requestorId);
 
     /**
      * Находит запрос по идентификатору.

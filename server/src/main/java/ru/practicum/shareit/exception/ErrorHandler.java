@@ -1,13 +1,17 @@
 package ru.practicum.shareit.exception;
 
-import jakarta.validation.ValidationException;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.NoSuchElementException;
 
 /**
@@ -16,6 +20,18 @@ import java.util.NoSuchElementException;
  */
 @RestControllerAdvice
 public class ErrorHandler {
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public Map<String, String> handleValidationExceptions(MethodArgumentNotValidException ex) {
+        Map<String, String> errors = new HashMap<>();
+        ex.getBindingResult().getAllErrors().forEach(error -> {
+            String fieldName = ((FieldError) error).getField();
+            String errorMessage = error.getDefaultMessage();
+            errors.put("error", errorMessage);
+        });
+        return errors;
+    }
+
     /**
      * Обрабатывает AccessDeniedException и возвращает HTTP 403.
      */
@@ -55,10 +71,20 @@ public class ErrorHandler {
     /**
      * Обрабатывает ValidationException и возвращает HTTP 400.
      */
-    @ExceptionHandler
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ErrorResponse handleValidationException(final ValidationException e) {
-        return new ErrorResponse(e.getMessage());
+    @ExceptionHandler(ValidationException.class)
+    public ResponseEntity<Object> handleValidationException(ValidationException ex) {
+        Map<String, String> errorResponse = Map.of("error", ex.getMessage());
+
+        // Определяем статус по содержанию сообщения
+        HttpStatus status = HttpStatus.BAD_REQUEST; // по умолчанию 400
+
+        if (ex.getMessage().contains("already exists") ||
+                ex.getMessage().contains("already booked") ||
+                ex.getMessage().contains("Email already")) {
+            status = HttpStatus.CONFLICT; // 409 для конфликтов
+        }
+
+        return new ResponseEntity<>(errorResponse, status);
     }
 
     /**

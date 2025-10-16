@@ -1,9 +1,9 @@
 package ru.practicum.shareit.user;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.user.dto.UserDto;
-import jakarta.validation.Valid;
 
 import java.util.List;
 
@@ -18,11 +18,17 @@ public class UserController {
     }
 
     @PostMapping
-    public UserDto createUser(@Valid @RequestBody UserDto userDto) {
+    public UserDto createUser(@RequestBody UserDto userDto) {
         log.info("POST /users - Creating user: {}", userDto);
         UserDto result = userService.createUser(userDto);
         log.info("POST /users - User created successfully: {}", result);
         return result;
+    }
+
+    @GetMapping("/check-email")
+    public ResponseEntity<Boolean> existsByEmail(@RequestParam String email) {
+        boolean exists = userService.existsByEmail(email);
+        return ResponseEntity.ok(exists);
     }
 
     @GetMapping("/{id}")

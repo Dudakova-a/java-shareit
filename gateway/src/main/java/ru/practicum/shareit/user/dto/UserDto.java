@@ -14,7 +14,6 @@ import jakarta.validation.constraints.NotNull;
 public class UserDto {
     private Long id;
 
-    @NotNull(message = "Name cannot be null")
     @NotBlank(message = "Name cannot be blank")
     private String name;
 
