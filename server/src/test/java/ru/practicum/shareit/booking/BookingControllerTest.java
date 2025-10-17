@@ -12,6 +12,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import ru.practicum.shareit.booking.dto.BookingCreateDto;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.dto.BookingWithUserDto;
+import ru.practicum.shareit.exception.NotFoundException;
+import ru.practicum.shareit.exception.ValidationException;
 
 
 import java.time.LocalDateTime;
@@ -99,4 +101,33 @@ class BookingControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1L));
     }
+
+    @Test
+    void getById_WhenBookingNotFound_ShouldReturnNotFound() throws Exception {
+        when(bookingService.getById(anyLong(), anyLong()))
+                .thenThrow(new NotFoundException("Booking not found"));
+
+        mockMvc.perform(get("/bookings/999")
+                        .header("X-Sharer-User-Id", 1L))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void create_WhenInvalidData_ShouldReturnBadRequest() throws Exception {
+        BookingCreateDto createDto = new BookingCreateDto();
+        // Невалидные данные - start в прошлом
+        createDto.setItemId(1L);
+        createDto.setStart(LocalDateTime.now().minusDays(1));
+        createDto.setEnd(LocalDateTime.now().plusDays(2));
+
+        when(bookingService.create(any(BookingCreateDto.class), anyLong()))
+                .thenThrow(new ValidationException("Invalid date"));
+
+        mockMvc.perform(post("/bookings")
+                        .header("X-Sharer-User-Id", 1L)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(createDto)))
+                .andExpect(status().isBadRequest());
+    }
+
 }

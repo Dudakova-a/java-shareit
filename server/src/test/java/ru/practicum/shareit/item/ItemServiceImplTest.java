@@ -7,13 +7,15 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import ru.practicum.shareit.booking.BookingRepository;
 import ru.practicum.shareit.booking.dto.BookingStatus;
+import ru.practicum.shareit.item.dto.BookingInfoDto;
 import ru.practicum.shareit.booking.Booking;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.exception.ValidationException;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
-
 import ru.practicum.shareit.request.ItemRequestRepository;
 import ru.practicum.shareit.request.ItemRequest;
 import ru.practicum.shareit.user.UserRepository;
@@ -526,5 +528,173 @@ class ItemServiceImplTest {
         verify(commentRepository, never()).save(any());
     }
 
+
+    @Test
+    void findLastBooking_ShouldReturnLastBooking() {
+        // Given
+        Long itemId = 1L;
+        User owner = new User();
+        owner.setId(1L);
+
+        User booker = new User();
+        booker.setId(2L);
+
+        Item item = new Item();
+        item.setId(itemId);
+        item.setOwner(owner);
+
+        Booking lastBooking = Booking.builder()
+                .id(1L)
+                .start(LocalDateTime.now().minusDays(3))
+                .end(LocalDateTime.now().minusDays(1))
+                .item(item)
+                .booker(booker)
+                .status(BookingStatus.APPROVED)
+                .build();
+
+        when(bookingRepository.findCompletedBookingsByItemId(eq(itemId), any(LocalDateTime.class)))
+                .thenReturn(List.of(lastBooking));
+
+        // When
+        BookingInfoDto result = itemService.findLastBooking(itemId);
+
+        // Then
+        assertThat(result).isNotNull();
+        assertThat(result.getId()).isEqualTo(1L);
+        assertThat(result.getBookerId()).isEqualTo(2L);
+        verify(bookingRepository).findCompletedBookingsByItemId(eq(itemId), any(LocalDateTime.class));
+    }
+
+    @Test
+    void findLastBooking_WhenNoBookings_ShouldReturnNull() {
+        // Given
+        Long itemId = 1L;
+        when(bookingRepository.findCompletedBookingsByItemId(eq(itemId), any(LocalDateTime.class)))
+                .thenReturn(List.of());
+
+        // When
+        BookingInfoDto result = itemService.findLastBooking(itemId);
+
+        // Then
+        assertThat(result).isNull();
+    }
+
+    @Test
+    void findNextBooking_ShouldReturnNextBooking() {
+        // Given
+        Long itemId = 1L;
+        User owner = new User();
+        owner.setId(1L);
+
+        User booker = new User();
+        booker.setId(2L);
+
+        Item item = new Item();
+        item.setId(itemId);
+        item.setOwner(owner);
+
+        Booking nextBooking = Booking.builder()
+                .id(1L)
+                .start(LocalDateTime.now().plusDays(1))
+                .end(LocalDateTime.now().plusDays(2))
+                .item(item)
+                .booker(booker)
+                .status(BookingStatus.APPROVED)
+                .build();
+
+        when(bookingRepository.findFutureBookingsByItemId(eq(itemId), any(LocalDateTime.class)))
+                .thenReturn(List.of(nextBooking));
+
+        // When
+        BookingInfoDto result = itemService.findNextBooking(itemId);
+
+        // Then
+        assertThat(result).isNotNull();
+        assertThat(result.getId()).isEqualTo(1L);
+        assertThat(result.getBookerId()).isEqualTo(2L);
+        verify(bookingRepository).findFutureBookingsByItemId(eq(itemId), any(LocalDateTime.class));
+    }
+
+    @Test
+    void findNextBooking_WhenNoBookings_ShouldReturnNull() {
+        // Given
+        Long itemId = 1L;
+        when(bookingRepository.findFutureBookingsByItemId(eq(itemId), any(LocalDateTime.class)))
+                .thenReturn(List.of());
+
+        // When
+        BookingInfoDto result = itemService.findNextBooking(itemId);
+
+        // Then
+        assertThat(result).isNull();
+    }
+
+    // Дополнительные edge cases
+    @Test
+    void getById_WhenUserIsOwner_ShouldIncludeBookings() {
+        // Given
+        Long itemId = 1L;
+        Long ownerId = 1L;
+
+        User owner = new User();
+        owner.setId(ownerId);
+
+        Item item = new Item();
+        item.setId(itemId);
+        item.setOwner(owner);
+
+        // Создаем объект ItemDto
+        ItemDto itemDto = new ItemDto();
+        itemDto.setId(itemId);
+        itemDto.setName("Test Item");
+
+        when(itemRepository.findById(itemId)).thenReturn(Optional.of(item));
+        when(itemMapper.toItemDto(item)).thenReturn(itemDto);
+        when(bookingRepository.findCompletedBookingsByItemId(eq(itemId), any(LocalDateTime.class)))
+                .thenReturn(List.of());
+        when(bookingRepository.findFutureBookingsByItemId(eq(itemId), any(LocalDateTime.class)))
+                .thenReturn(List.of());
+
+        // When
+        ItemDto result = itemService.getById(itemId, ownerId);
+
+        // Then
+        assertNotNull(result);
+        // Проверяем что методы поиска бронирований были вызваны для владельца
+        verify(bookingRepository).findCompletedBookingsByItemId(eq(itemId), any(LocalDateTime.class));
+        verify(bookingRepository).findFutureBookingsByItemId(eq(itemId), any(LocalDateTime.class));
+    }
+
+    @Test
+    void getById_WhenUserIsNotOwner_ShouldNotIncludeBookings() {
+        // Given
+        Long itemId = 1L;
+        Long ownerId = 1L;
+        Long otherUserId = 2L;
+
+        User owner = new User();
+        owner.setId(ownerId);
+
+        Item item = new Item();
+        item.setId(itemId);
+        item.setOwner(owner);
+
+        // Создаем объект ItemDto
+        ItemDto itemDto = new ItemDto();
+        itemDto.setId(itemId);
+        itemDto.setName("Test Item");
+
+        when(itemRepository.findById(itemId)).thenReturn(Optional.of(item));
+        when(itemMapper.toItemDto(item)).thenReturn(itemDto);
+
+        // When
+        ItemDto result = itemService.getById(itemId, otherUserId);
+
+        // Then
+        assertNotNull(result);
+        // Проверяем что методы поиска бронирований НЕ были вызваны для не-владельца
+        verify(bookingRepository, never()).findCompletedBookingsByItemId(anyLong(), any(LocalDateTime.class));
+        verify(bookingRepository, never()).findFutureBookingsByItemId(anyLong(), any(LocalDateTime.class));
+    }
 
 }

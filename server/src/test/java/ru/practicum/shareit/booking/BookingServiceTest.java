@@ -13,9 +13,16 @@ import ru.practicum.shareit.item.ItemRepository;
 import ru.practicum.shareit.item.Item;
 import ru.practicum.shareit.user.UserRepository;
 import ru.practicum.shareit.user.User;
+import ru.practicum.shareit.booking.dto.BookingStatus;
+import ru.practicum.shareit.booking.dto.BookingDto;
+import ru.practicum.shareit.booking.dto.BookingWithUserDto;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -304,5 +311,142 @@ class BookingServiceTest {
 
         verify(bookingRepository).existsById(bookingId);
         verify(bookingRepository, never()).deleteById(bookingId);
+    }
+
+    @Test
+    void updateStatus_WhenApproved_ShouldUpdateToApproved() {
+        // Given
+        Long bookingId = 1L;
+        Long ownerId = 1L;
+
+        User owner = new User();
+        owner.setId(ownerId);
+
+        User booker = new User();
+        booker.setId(2L);
+
+        Item item = new Item();
+        item.setId(1L);
+        item.setOwner(owner);
+
+        Booking booking = new Booking();
+        booking.setId(bookingId);
+        booking.setItem(item);
+        booking.setBooker(booker);
+        booking.setStatus(BookingStatus.WAITING);
+
+        when(bookingRepository.findById(bookingId)).thenReturn(Optional.of(booking));
+        when(bookingRepository.save(any(Booking.class))).thenReturn(booking);
+
+        // When
+        BookingDto result = bookingService.updateStatus(bookingId, true, ownerId);
+
+        // Then
+        assertThat(booking.getStatus()).isEqualTo(BookingStatus.APPROVED);
+        verify(bookingRepository).save(booking);
+    }
+
+    @Test
+    void getByBookerId_WithAllStates_ShouldReturnCorrectBookings() {
+        // Given
+        Long bookerId = 1L;
+        User booker = new User();
+        booker.setId(bookerId);
+
+        when(userRepository.findById(bookerId)).thenReturn(Optional.of(booker));
+        when(bookingRepository.findByBookerIdOrderByStartDesc(bookerId)).thenReturn(List.of());
+        when(bookingRepository.findCurrentBookingsByBookerId(eq(bookerId), any(LocalDateTime.class))).thenReturn(List.of());
+        // ... аналогично для других states
+
+        // When & Then - проверяем все состояния
+        assertDoesNotThrow(() -> bookingService.getByBookerId(bookerId, "ALL"));
+        assertDoesNotThrow(() -> bookingService.getByBookerId(bookerId, "CURRENT"));
+        assertDoesNotThrow(() -> bookingService.getByBookerId(bookerId, "PAST"));
+        assertDoesNotThrow(() -> bookingService.getByBookerId(bookerId, "FUTURE"));
+        assertDoesNotThrow(() -> bookingService.getByBookerId(bookerId, "WAITING"));
+        assertDoesNotThrow(() -> bookingService.getByBookerId(bookerId, "REJECTED"));
+    }
+
+    @Test
+    void getByOwnerId_ShouldReturnOwnerBookings() {
+        // Given
+        Long ownerId = 1L;
+        User owner = new User();
+        owner.setId(ownerId);
+
+        when(userRepository.findById(ownerId)).thenReturn(Optional.of(owner));
+        when(bookingRepository.findByItemOwnerIdOrderByStartDesc(ownerId)).thenReturn(List.of());
+
+        // When
+        List<BookingWithUserDto> result = bookingService.getByOwnerId(ownerId, "ALL");
+
+        // Then
+        assertNotNull(result);
+        verify(bookingRepository).findByItemOwnerIdOrderByStartDesc(ownerId);
+    }
+
+    @Test
+    void getById_WhenUserIsBooker_ShouldReturnBooking() {
+        // Given
+        Long bookingId = 1L;
+        Long bookerId = 2L;
+
+        User booker = new User();
+        booker.setId(bookerId);
+
+        User owner = new User();
+        owner.setId(1L);
+
+        Item item = new Item();
+        item.setId(1L);
+        item.setOwner(owner);
+
+        Booking booking = new Booking();
+        booking.setId(bookingId);
+        booking.setBooker(booker);
+        booking.setItem(item);
+        booking.setStatus(BookingStatus.WAITING);
+        booking.setStart(LocalDateTime.now().plusDays(1));
+        booking.setEnd(LocalDateTime.now().plusDays(2));
+
+        when(bookingRepository.findById(bookingId)).thenReturn(Optional.of(booking));
+
+        // When
+        BookingDto result = bookingService.getById(bookingId, bookerId);
+
+        // Then
+        assertNotNull(result);
+        assertEquals(bookingId, result.getId());
+    }
+
+    @Test
+    void create_WhenOverlappingBookingsExist_ShouldThrowException() {
+        // Given
+        Long bookerId = 2L;
+        Long itemId = 1L;
+
+        User booker = new User();
+        booker.setId(bookerId);
+
+        User owner = new User();
+        owner.setId(1L);
+
+        Item item = new Item();
+        item.setId(itemId);
+        item.setAvailable(true);
+        item.setOwner(owner);
+
+        BookingCreateDto createDto = new BookingCreateDto();
+        createDto.setItemId(itemId);
+        createDto.setStart(LocalDateTime.now().plusDays(1));
+        createDto.setEnd(LocalDateTime.now().plusDays(2));
+
+        when(userRepository.findById(bookerId)).thenReturn(Optional.of(booker));
+        when(itemRepository.findById(itemId)).thenReturn(Optional.of(item));
+        when(bookingRepository.existOverlappingBookings(eq(itemId), any(LocalDateTime.class),
+                any(LocalDateTime.class), isNull())).thenReturn(true);
+
+        // When & Then
+        assertThrows(ValidationException.class, () -> bookingService.create(createDto, bookerId));
     }
 }

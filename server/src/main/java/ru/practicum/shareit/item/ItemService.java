@@ -78,10 +78,10 @@ public interface ItemService {
     /**
      * Находит последнее завершенное бронирование для вещи.
      */
-    BookingInfoDto findLastBooking(Long itemId); // ← ИЗМЕНИТЬ ТИП
+    BookingInfoDto findLastBooking(Long itemId);
 
     /**
      * Находит ближайшее следующее бронирование для вещи.
      */
-    BookingInfoDto findNextBooking(Long itemId); // ← ИЗМЕНИТЬ ТИП
+    BookingInfoDto findNextBooking(Long itemId);
 }
