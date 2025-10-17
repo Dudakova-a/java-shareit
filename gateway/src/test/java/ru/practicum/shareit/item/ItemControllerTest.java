@@ -61,14 +61,12 @@ class ItemControllerTest {
         ItemDto itemDto = createTestItemDto();
         itemDto.setId(null); // Для создания ID должен быть null
 
-        String responseBody = """
-                {
-                    "id": 1,
-                    "name": "Test Item",
-                    "description": "Test Description",
-                    "available": true
-                }
-                """;
+        String responseBody = "{" +
+                "\"id\": 1," +
+                "\"name\": \"Test Item\"," +
+                "\"description\": \"Test Description\"," +
+                "\"available\": true" +
+                "}";
 
         when(itemClient.create(any(ItemDto.class), anyLong()))
                 .thenReturn(ResponseEntity.ok(responseBody));
@@ -115,14 +113,12 @@ class ItemControllerTest {
     @Test
     void getById_shouldReturnItem() throws Exception {
         // Given
-        String responseBody = """
-                {
-                    "id": 1,
-                    "name": "Test Item",
-                    "description": "Test Description",
-                    "available": true
-                }
-                """;
+        String responseBody = "{" +
+                "\"id\": 1," +
+                "\"name\": \"Test Item\"," +
+                "\"description\": \"Test Description\"," +
+                "\"available\": true" +
+                "}";
 
         when(itemClient.getById(anyLong(), anyLong()))
                 .thenReturn(ResponseEntity.ok(responseBody));
@@ -151,20 +147,18 @@ class ItemControllerTest {
     @Test
     void getByOwnerId_shouldReturnItemsList() throws Exception {
         // Given
-        String responseBody = """
-                [
-                    {
-                        "id": 1,
-                        "name": "Item 1",
-                        "available": true
-                    },
-                    {
-                        "id": 2,
-                        "name": "Item 2",
-                        "available": true
-                    }
-                ]
-                """;
+        String responseBody = "[" +
+                "{" +
+                "\"id\": 1," +
+                "\"name\": \"Item 1\"," +
+                "\"available\": true" +
+                "}," +
+                "{" +
+                "\"id\": 2," +
+                "\"name\": \"Item 2\"," +
+                "\"available\": true" +
+                "}" +
+                "]";
 
         when(itemClient.getByOwnerId(anyLong(), anyInt(), anyInt()))
                 .thenReturn(ResponseEntity.ok(responseBody));
@@ -199,14 +193,12 @@ class ItemControllerTest {
         ItemDto updateDto = new ItemDto();
         updateDto.setName("Updated Name");
 
-        String responseBody = """
-                {
-                    "id": 1,
-                    "name": "Updated Name",
-                    "description": "Original Description",
-                    "available": true
-                }
-                """;
+        String responseBody = "{" +
+                "\"id\": 1," +
+                "\"name\": \"Updated Name\"," +
+                "\"description\": \"Original Description\"," +
+                "\"available\": true" +
+                "}";
 
         when(itemClient.update(anyLong(), any(ItemDto.class), anyLong()))
                 .thenReturn(ResponseEntity.ok(responseBody));
@@ -255,16 +247,14 @@ class ItemControllerTest {
     @Test
     void search_shouldReturnFoundItems() throws Exception {
         // Given
-        String responseBody = """
-                [
-                    {
-                        "id": 1,
-                        "name": "Drill",
-                        "description": "Powerful drill",
-                        "available": true
-                    }
-                ]
-                """;
+        String responseBody = "[" +
+                "{" +
+                "\"id\": 1," +
+                "\"name\": \"Drill\"," +
+                "\"description\": \"Powerful drill\"," +
+                "\"available\": true" +
+                "}" +
+                "]";
 
         when(itemClient.search(anyString(), anyInt(), anyInt()))
                 .thenReturn(ResponseEntity.ok(responseBody));
@@ -301,14 +291,12 @@ class ItemControllerTest {
         CommentDto commentDto = createTestCommentDto();
         commentDto.setId(null);
 
-        String responseBody = """
-                {
-                    "id": 1,
-                    "text": "Test comment",
-                    "authorName": "Test User",
-                    "created": "2024-01-01T10:00:00"
-                }
-                """;
+        String responseBody = "{" +
+                "\"id\": 1," +
+                "\"text\": \"Test comment\"," +
+                "\"authorName\": \"Test User\"," +
+                "\"created\": \"2024-01-01T10:00:00\"" +
+                "}";
 
         when(itemClient.addComment(anyLong(), any(CommentDto.class), anyLong()))
                 .thenReturn(ResponseEntity.ok(responseBody));

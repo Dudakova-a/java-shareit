@@ -42,16 +42,14 @@ class BookingControllerTest {
     }
 
     private String createBookingResponseJson() {
-        return """
-                {
-                    "id": 1,
-                    "start": "2024-01-01T10:00:00",
-                    "end": "2024-01-02T10:00:00",
-                    "status": "WAITING",
-                    "booker": {"id": 1, "name": "Booker"},
-                    "item": {"id": 1, "name": "Item"}
-                }
-                """;
+        return "{" +
+                "\"id\": 1," +
+                "\"start\": \"2024-01-01T10:00:00\"," +
+                "\"end\": \"2024-01-02T10:00:00\"," +
+                "\"status\": \"WAITING\"," +
+                "\"booker\": {\"id\": 1, \"name\": \"Booker\"}," +
+                "\"item\": {\"id\": 1, \"name\": \"Item\"}" +
+                "}";
     }
 
     // Тесты для создания бронирования
@@ -125,14 +123,12 @@ class BookingControllerTest {
     @Test
     void updateStatus_shouldApproveBooking() throws Exception {
         // Given
-        String responseBody = """
-                {
-                    "id": 1,
-                    "status": "APPROVED",
-                    "booker": {"id": 1},
-                    "item": {"id": 1}
-                }
-                """;
+        String responseBody = "{\n" +
+                "    \"id\": 1,\n" +
+                "    \"status\": \"APPROVED\",\n" +
+                "    \"booker\": {\"id\": 1},\n" +
+                "    \"item\": {\"id\": 1}\n" +
+                "}";
 
         when(bookingClient.updateStatus(anyLong(), anyBoolean(), anyLong()))
                 .thenReturn(ResponseEntity.ok(responseBody));
@@ -148,14 +144,12 @@ class BookingControllerTest {
     @Test
     void updateStatus_shouldRejectBooking() throws Exception {
         // Given
-        String responseBody = """
-                {
-                    "id": 1,
-                    "status": "REJECTED",
-                    "booker": {"id": 1},
-                    "item": {"id": 1}
-                }
-                """;
+        String responseBody = "{" +
+                "\"id\": 1," +
+                "\"status\": \"REJECTED\"," +
+                "\"booker\": {\"id\": 1}," +
+                "\"item\": {\"id\": 1}" +
+                "}";
 
         when(bookingClient.updateStatus(anyLong(), anyBoolean(), anyLong()))
                 .thenReturn(ResponseEntity.ok(responseBody));
@@ -180,22 +174,20 @@ class BookingControllerTest {
     @Test
     void getBookings_shouldReturnUserBookings() throws Exception {
         // Given
-        String responseBody = """
-                [
-                    {
-                        "id": 1,
-                        "status": "APPROVED",
-                        "start": "2024-01-01T10:00:00",
-                        "end": "2024-01-02T10:00:00"
-                    },
-                    {
-                        "id": 2,
-                        "status": "WAITING",
-                        "start": "2024-01-03T10:00:00",
-                        "end": "2024-01-04T10:00:00"
-                    }
-                ]
-                """;
+        String responseBody = "[" +
+                "{" +
+                "\"id\": 1," +
+                "\"status\": \"APPROVED\"," +
+                "\"start\": \"2024-01-01T10:00:00\"," +
+                "\"end\": \"2024-01-02T10:00:00\"" +
+                "}," +
+                "{" +
+                "\"id\": 2," +
+                "\"status\": \"WAITING\"," +
+                "\"start\": \"2024-01-03T10:00:00\"," +
+                "\"end\": \"2024-01-04T10:00:00\"" +
+                "}" +
+                "]";
 
         when(bookingClient.getBookings(anyLong(), anyString(), anyInt(), anyInt()))
                 .thenReturn(ResponseEntity.ok(responseBody));
@@ -247,15 +239,13 @@ class BookingControllerTest {
     @Test
     void getOwnerBookings_shouldReturnOwnerBookings() throws Exception {
         // Given
-        String responseBody = """
-                [
-                    {
-                        "id": 1,
-                        "status": "APPROVED",
-                        "item": {"id": 1, "name": "Owner Item"}
-                    }
-                ]
-                """;
+        String responseBody = "[" +
+                "{" +
+                "\"id\": 1," +
+                "\"status\": \"APPROVED\"," +
+                "\"item\": {\"id\": 1, \"name\": \"Owner Item\"}" +
+                "}" +
+                "]";
 
         when(bookingClient.getOwnerBookings(anyLong(), anyString(), anyInt(), anyInt()))
                 .thenReturn(ResponseEntity.ok(responseBody));
