@@ -96,4 +96,86 @@ class BookingCreateDtoJsonTest {
         // Then
         assertThat(violations).isEmpty();
     }
+
+    @Test
+    void shouldSerializeWithAllFields() throws Exception {
+        // Given
+        LocalDateTime start = LocalDateTime.of(2024, 1, 1, 10, 0);
+        LocalDateTime end = LocalDateTime.of(2024, 1, 2, 10, 0);
+        BookingCreateDto dto = new BookingCreateDto(start, end, 1L);
+
+        // When
+        String json = objectMapper.writeValueAsString(dto);
+
+        // Then
+        assertThat(json).contains("\"start\":\"2024-01-01T10:00:00\"");
+        assertThat(json).contains("\"end\":\"2024-01-02T10:00:00\"");
+        assertThat(json).contains("\"itemId\":1");
+    }
+
+    @Test
+    void shouldDeserializeWithDifferentDateTimeFormats() throws Exception {
+        // Given - разные форматы дат которые может принимать Jackson
+        String json = "{" +
+                "\"start\":\"2024-01-01T10:00:00\"," +
+                "\"end\":\"2024-01-02T10:00:00.000\"," + // с миллисекундами
+                "\"itemId\":1" +
+                "}";
+
+        // When
+        BookingCreateDto dto = objectMapper.readValue(json, BookingCreateDto.class);
+
+        // Then
+        assertThat(dto.getStart()).isEqualTo(LocalDateTime.of(2024, 1, 1, 10, 0));
+        assertThat(dto.getEnd()).isEqualTo(LocalDateTime.of(2024, 1, 2, 10, 0));
+        assertThat(dto.getItemId()).isEqualTo(1L);
+    }
+
+    @Test
+    void shouldHandleNullValuesInDeserialization() throws Exception {
+        // Given - JSON с null значениями
+        String json = "{" +
+                "\"start\":null," +
+                "\"end\":null," +
+                "\"itemId\":null" +
+                "}";
+
+        // When
+        BookingCreateDto dto = objectMapper.readValue(json, BookingCreateDto.class);
+
+        // Then
+        assertThat(dto.getStart()).isNull();
+        assertThat(dto.getEnd()).isNull();
+        assertThat(dto.getItemId()).isNull();
+    }
+
+    @Test
+    void shouldValidateFutureOrPresentStart() {
+        // Given - используем будущее время с запасом
+        LocalDateTime futureStart = LocalDateTime.now().plusSeconds(1); // +1 секунда в будущее
+        LocalDateTime futureEnd = LocalDateTime.now().plusDays(1);
+        BookingCreateDto dto = new BookingCreateDto(futureStart, futureEnd, 1L);
+
+        // When
+        Set<ConstraintViolation<BookingCreateDto>> violations = validator.validate(dto);
+
+        // Then
+        assertThat(violations).isEmpty();
+    }
+
+    @Test
+    void shouldFailWhenEndIsExactlyNow() {
+        // Given
+        LocalDateTime start = LocalDateTime.now().plusHours(1);
+        LocalDateTime end = LocalDateTime.now(); // настоящее время для end
+        BookingCreateDto dto = new BookingCreateDto(start, end, 1L);
+
+        // When
+        Set<ConstraintViolation<BookingCreateDto>> violations = validator.validate(dto);
+
+        // Then
+        assertThat(violations).hasSize(1);
+        assertThat(violations.iterator().next().getMessage())
+                .isEqualTo("End date must be in future");
+    }
 }
